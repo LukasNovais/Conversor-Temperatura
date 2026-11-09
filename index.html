@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Dilatação e Contração Térmica de Combustíveis (ANP)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-500 text-slate-900 p-2.5 rounded-xl shadow-lg font-bold">
+                    <i class="fa-solid fa-truck-droplet text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold leading-tight">Calculadora Térmica ANP</h1>
+                    <p class="text-xs text-slate-400">Verificação de Dilatação & Contração de Combustíveis</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300 border border-slate-700">
+                <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+                <span>Resolução ANP nº 894/2022</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-6 md:py-10 flex-grow w-full">
+        
+        <!-- Intro Banner -->
+        <div class="mb-8 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="relative z-10 max-w-3xl">
+                <span class="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/30 inline-block mb-3">
+                    <i class="fa-solid fa-lightbulb mr-1"></i> Evite Falsos Diagnósticos de Falta de Carga
+                </span>
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">Diferença de Nível na Régua / Seta?</h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    O combustível expande no calor e contrai no frio. Calcule instantaneamente a variação em litros causada por mudanças térmicas durante o transporte rodoviário.
+                </p>
+            </div>
+            <div class="absolute -right-6 -bottom-10 opacity-10 text-white text-9xl pointer-events-none">
+                <i class="fa-solid fa-temperature-arrow-down"></i>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Form Controls -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+                    <h3 class="text-lg font-bold text-slate-900 mb-5 flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span><i class="fa-solid fa-sliders text-amber-500 mr-2"></i> Parâmetros da Carga</span>
+                        <button type="button" id="resetBtn" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Limpar
+                        </button>
+                    </h3>
+
+                    <form id="calcForm" class="space-y-5" onsubmit="return false;">
+                        
+                        <!-- Combustível Select -->
+                        <div>
+                            <label for="fuelType" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                                1. Selecione o Combustível
+                            </label>
+                            <div class="relative">
+                                <select id="fuelType" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 appearance-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium cursor-pointer transition-all">
+                                    <option value="diesel_s10" selected>Diesel S10 (Fator β: 0.00084)</option>
+                                    <option value="diesel_s500">Diesel S500 (Fator β: 0.00085)</option>
+                                    <option value="gasolina">Gasolina C (Fator β: 0.00120)</option>
+                                    <option value="etanol">Etanol Hidratado (Fator β: 0.00110)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                    <i class="fa-solid fa-chevron-down text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Volume Total -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="volumeTotal" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                    2. Volume Carregado (Litros)
+                                </label>
+                                <span class="text-xs text-slate-400">Atalhos rápidos:</span>
+                            </div>
+                            
+                            <!-- Quick Buttons -->
+                            <div class="grid grid-cols-4 gap-2 mb-2">
+                                <button type="button" onclick="setVolume(5000)" class="py-1 px-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg border border-slate-200 transition-all">5.000 L</button>
+                                <button type="button" onclick="setVolume(10000)" class="py-1 px-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg border border-slate-200 transition-all">10.000 L</button>
+                                <button type="button" onclick="setVolume(15000)" class="py-1 px-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg border border-slate-200 transition-all">15.000 L</button>
+                                <button type="button" onclick="setVolume(30000)" class="py-1 px-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 font-bold rounded-lg border border-amber-300 transition-all">30.000 L</button>
+                            </div>
+
+                            <div class="relative">
+                                <input type="number" id="volumeTotal" value="30000" min="100" step="100" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-bold text-lg transition-all" placeholder="Ex: 30000">
+                                <span class="absolute right-4 top-3.5 text-slate-400 text-sm font-semibold">Litros</span>
+                            </div>
+                        </div>
+
+                        <!-- Quantidade de Bocas / Compartimentos -->
+                        <div>
+                            <label for="compartments" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                                3. Nº de Bocas / Compartimentos
+                            </label>
+                            <div class="grid grid-cols-6 gap-2">
+                                <button type="button" onclick="setCompartments(1)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" data-val="1">1</button>
+                                <button type="button" onclick="setCompartments(2)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" data-val="2">2</button>
+                                <button type="button" onclick="setCompartments(3)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" data-val="3">3</button>
+                                <button type="button" onclick="setCompartments(4)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" data-val="4">4</button>
+                                <button type="button" onclick="setCompartments(5)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" data-val="5">5</button>
+                                <button type="button" onclick="setCompartments(6)" class="comp-btn py-2 text-sm font-semibold rounded-lg border border-amber-500 bg-amber-500 text-white font-bold" data-val="6">6</button>
+                            </div>
+                            <input type="hidden" id="numCompartments" value="6">
+                        </div>
+
+                        <!-- Temperatura Sliders & Inputs -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <!-- Temp Carregamento -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <label for="tempLoad" class="block text-xs font-semibold text-slate-600 mb-1">
+                                    <i class="fa-solid fa-temperature-high text-red-500 mr-1"></i> Carregamento (°C)
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="tempLoad" value="33" step="0.5" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-bold text-center text-lg focus:ring-2 focus:ring-amber-500">
+                                    <span class="text-slate-600 font-bold">°C</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 block mt-1 text-center">Origem / Base</span>
+                            </div>
+
+                            <!-- Temp Entrega -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <label for="tempUnload" class="block text-xs font-semibold text-slate-600 mb-1">
+                                    <i class="fa-solid fa-temperature-low text-blue-500 mr-1"></i> Entrega (°C)
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="tempUnload" value="21.5" step="0.5" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-bold text-center text-lg focus:ring-2 focus:ring-amber-500">
+                                    <span class="text-slate-600 font-bold">°C</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 block mt-1 text-center">Destino / Cliente</span>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Explanation -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Main Result Card -->
+                <div id="resultCard" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 transition-all">
+                    
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Resultado do Diagnóstico</span>
+                        <div id="statusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-down-short-wide"></i> Contração Térmica Detectada
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        
+                        <!-- Variação Térmica Delta -->
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between">
+                            <span class="text-xs font-semibold text-slate-500 block mb-1">Diferença de Temp.</span>
+                            <div class="flex items-baseline space-x-1">
+                                <span id="deltaTempDisplay" class="text-2xl font-black text-slate-800">-11,5</span>
+                                <span class="text-sm font-bold text-slate-500">°C</span>
+                            </div>
+                            <span id="deltaTempDesc" class="text-[11px] text-slate-500 mt-2">Produto Resfriou</span>
+                        </div>
+
+                        <!-- Variação Volumétrica Total -->
+                        <div class="bg-amber-500/10 rounded-xl p-4 border border-amber-300 flex flex-col justify-between">
+                            <span class="text-xs font-semibold text-amber-900 block mb-1">Variação Total Estimada</span>
+                            <div class="flex items-baseline space-x-1">
+                                <span id="totalDiffDisplay" class="text-3xl font-black text-amber-700">-289,8</span>
+                                <span class="text-sm font-bold text-amber-700">Litros</span>
+                            </div>
+                            <span id="percentDisplay" class="text-[11px] font-medium text-amber-800 mt-2">~0.97% da carga total</span>
+                        </div>
+
+                        <!-- Variação por Boca -->
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between">
+                            <span class="text-xs font-semibold text-slate-500 block mb-1">Diferença Média / Boca</span>
+                            <div class="flex items-baseline space-x-1">
+                                <span id="perCompDisplay" class="text-2xl font-black text-slate-800">-48,3</span>
+                                <span class="text-sm font-bold text-slate-500">L / boca</span>
+                            </div>
+                            <span id="compCountDesc" class="text-[11px] text-slate-500 mt-2">Dividido em 6 compartimentos</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Progress Bar / Tank Level Simulation -->
+                    <div class="bg-slate-900 text-white rounded-xl p-4 mb-6">
+                        <div class="flex justify-between items-center text-xs mb-2">
+                            <span class="font-medium text-slate-300"><i class="fa-solid fa-eye text-amber-400 mr-1"></i> Aspecto Visual da Régua / Seta</span>
+                            <span id="rulerStatusText" class="font-bold text-amber-400">ABAIXO DA SETA</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700 relative">
+                            <!-- Arrow Indicator Marker (Center 95%) -->
+                            <div class="absolute right-[5%] top-0 bottom-0 w-0.5 bg-red-500 z-10" title="Marca da Seta"></div>
+                            <div id="tankBar" class="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all duration-500" style="width: 95%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <span>0 L (Vazio)</span>
+                            <span class="text-red-400 font-bold">▲ Nível da Seta (Referência)</span>
+                            <span>Capacidade Total</span>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-step Math Breakdown -->
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center">
+                            <i class="fa-solid fa-calculator text-amber-500 mr-2"></i> Memória de Cálculo ANP
+                        </h4>
+                        <div id="mathFormula" class="font-mono text-xs text-slate-700 space-y-1 bg-white p-3 rounded-lg border border-slate-200">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Explanation Box for Client -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold text-slate-900 flex items-center">
+                            <i class="fa-solid fa-comment-dots text-indigo-600 mr-2"></i> Texto de Explicação Pronta para o Cliente
+                        </h3>
+                        <button type="button" onclick="copyExplanation()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 transition-all flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Copiar Texto
+                        </button>
+                    </div>
+                    
+                    <div id="explanationText" class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200 font-normal">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <!-- ANP Rules Info Footer Card -->
+                <div class="bg-slate-800 text-slate-300 rounded-2xl p-5 text-xs space-y-3">
+                    <div class="font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i> Fundamentação Legal e Física
+                    </div>
+                    <p class="leading-relaxed">
+                        De acordo com as diretrizes da <strong>ANP (Resolução 894/2022)</strong>, a comercialização e fiscalização de combustíveis líquidos exige a correção termodensimétrica para a temperatura padrão de <strong>20 °C</strong>.
+                    </p>
+                    <p class="leading-relaxed">
+                        As variações volumétricas visuais no tanque (nível abaixo ou acima da seta) ocorrem sem qualquer perda de massa ou produto, sendo causadas exclusivamente por mudanças na densidade provocadas pela temperatura ambiente e chuva ao longo da rota.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-500 text-xs py-6 border-t border-slate-800 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center space-y-2">
+            <p>Calculadora de Dilatação Térmica de Combustíveis — Baseada na Tabela ANP de Conversão a 20°C</p>
+            <p class="text-slate-600">Desenvolvido para apoio logístico e auditoria de transporte rodoviário de combustíveis.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification for Copy -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-green-400 text-base"></i>
+        <span>Texto copiado com sucesso!</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Coeficientes de Expansão Térmica por grau Celsius (Valores ANP / Norma Técnica)
+        const fuelCoefficients = {
+            diesel_s10: { name: 'Óleo Diesel S10', beta: 0.00084, code: 'S10' },
+            diesel_s500: { name: 'Óleo Diesel S500', beta: 0.00085, code: 'S500' },
+            gasolina: { name: 'Gasolina C', beta: 0.00120, code: 'GAS' },
+            etanol: { name: 'Etanol Hidratado', beta: 0.00110, code: 'ETH' }
+        };
+
+        // DOM Elements
+        const fuelTypeSelect = document.getElementById('fuelType');
+        const volumeTotalInput = document.getElementById('volumeTotal');
+        const numCompartmentsInput = document.getElementById('numCompartments');
+        const tempLoadInput = document.getElementById('tempLoad');
+        const tempUnloadInput = document.getElementById('tempUnload');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Results Elements
+        const deltaTempDisplay = document.getElementById('deltaTempDisplay');
+        const deltaTempDesc = document.getElementById('deltaTempDesc');
+        const totalDiffDisplay = document.getElementById('totalDiffDisplay');
+        const percentDisplay = document.getElementById('percentDisplay');
+        const perCompDisplay = document.getElementById('perCompDisplay');
+        const compCountDesc = document.getElementById('compCountDesc');
+        const statusBadge = document.getElementById('statusBadge');
+        const rulerStatusText = document.getElementById('rulerStatusText');
+        const tankBar = document.getElementById('tankBar');
+        const mathFormula = document.getElementById('mathFormula');
+        const explanationText = document.getElementById('explanationText');
+
+        // Helper: Set volume via quick buttons
+        function setVolume(val) {
+            volumeTotalInput.value = val;
+            calculate();
+        }
+
+        // Helper: Set compartments via button grid
+        function setCompartments(val) {
+            numCompartmentsInput.value = val;
+            document.querySelectorAll('.comp-btn').forEach(btn => {
+                if (parseInt(btn.getAttribute('data-val')) === val) {
+                    btn.className = 'comp-btn py-2 text-sm font-semibold rounded-lg border border-amber-500 bg-amber-500 text-white font-bold shadow-sm';
+                } else {
+                    btn.className = 'comp-btn py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                }
+            });
+            calculate();
+        }
+
+        // Calculation Function
+        function calculate() {
+            const fuelKey = fuelTypeSelect.value;
+            const fuelInfo = fuelCoefficients[fuelKey];
+            const volume = parseFloat(volumeTotalInput.value) || 0;
+            const compCount = parseInt(numCompartmentsInput.value) || 1;
+            const tLoad = parseFloat(tempLoadInput.value) || 0;
+            const tUnload = parseFloat(tempUnloadInput.value) || 0;
+
+            const deltaT = tUnload - tLoad; // Pode ser negativo (contração) ou positivo (dilatação)
+            const volumeChange = volume * fuelInfo.beta * deltaT;
+            const perCompChange = volumeChange / compCount;
+            const percentChange = (volumeChange / volume) * 100;
+
+            // Formatação
+            const deltaTFormatted = deltaT > 0 ? `+${deltaT.toFixed(1)}` : deltaT.toFixed(1);
+            const volumeChangeFormatted = volumeChange > 0 ? `+${volumeChange.toFixed(1)}` : volumeChange.toFixed(1);
+            const perCompFormatted = perCompChange > 0 ? `+${perCompChange.toFixed(1)}` : perCompChange.toFixed(1);
+
+            // Update UI Displays
+            deltaTempDisplay.innerText = deltaTFormatted.replace('.', ',');
+            totalDiffDisplay.innerText = volumeChangeFormatted.replace('.', ',');
+            perCompDisplay.innerText = perCompFormatted.replace('.', ',');
+            percentDisplay.innerText = `${Math.abs(percentChange).toFixed(2)}% do volume total`;
+            compCountDesc.innerText = `Dividido em ${compCount} boca(s) / compartimento(s)`;
+
+            // Visual Status Badge & Ruler Simulation
+            if (deltaT < 0) {
+                // Contração
+                deltaTempDesc.innerText = 'Produto Resfriou (Contração)';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1.5';
+                statusBadge.innerHTML = '<i class="fa-solid fa-arrow-down-short-wide"></i> Contração Térmica (Nível Abaixa)';
+                
+                rulerStatusText.innerText = 'ABAIXO DA SETA (Falta Aparente)';
+                rulerStatusText.className = 'font-bold text-red-400';
+                
+                // Simulação gráfica da barra (95% é o nível da seta, ajusta conforme % de contração)
+                let fillPercent = Math.max(70, 95 - Math.abs(percentChange) * 5);
+                tankBar.style.width = `${fillPercent}%`;
+                tankBar.className = 'bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all duration-500';
+
+            } else if (deltaT > 0) {
+                // Dilatação
+                deltaTempDesc.innerText = 'Produto Aqueceu (Dilatação)';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5';
+                statusBadge.innerHTML = '<i class="fa-solid fa-arrow-up-wide-short"></i> Dilatação Térmica (Nível Sobe)';
+                
+                rulerStatusText.innerText = 'ACIMA DA SETA (Sobra Aparente)';
+                rulerStatusText.className = 'font-bold text-emerald-400';
+
+                let fillPercent = Math.min(100, 95 + Math.abs(percentChange) * 5);
+                tankBar.style.width = `${fillPercent}%`;
+                tankBar.className = 'bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full transition-all duration-500';
+            } else {
+                // Sem variação
+                deltaTempDesc.innerText = 'Temperatura Estável';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 flex items-center gap-1.5';
+                statusBadge.innerHTML = '<i class="fa-solid fa-equals"></i> Sem Variação Térmica';
+
+                rulerStatusText.innerText = 'EXATAMENTE NA SETA';
+                rulerStatusText.className = 'font-bold text-slate-300';
+                tankBar.style.width = '95%';
+            }
+
+            // Memória de Cálculo em texto
+            mathFormula.innerHTML = `
+                <div>• Coeficiente do produto (${fuelInfo.name}): <strong>${fuelInfo.beta}</strong></div>
+                <div>• Variação de Temp (ΔT): <strong>${tUnload}°C - ${tLoad}°C = ${deltaTFormatted}°C</strong></div>
+                <div>• Conta: <strong>${volume.toLocaleString('pt-BR')} L × ${fuelInfo.beta} × (${deltaTFormatted}°C)</strong></div>
+                <div class="pt-1 text-slate-900 font-bold border-t border-slate-200 mt-1">
+                    = Variação Volumétrica: ${volumeChangeFormatted.replace('.', ',')} Litros
+                </div>
+            `;
+
+            // Gerar Texto de Explicação Pronta
+            generateExplanationText(fuelInfo, volume, compCount, tLoad, tUnload, deltaT, volumeChange, perCompChange);
+        }
+
+        // Explanation text generator
+        function generateExplanationText(fuelInfo, volume, compCount, tLoad, tUnload, deltaT, volumeChange, perCompChange) {
+            const isContraction = deltaT < 0;
+            const absVol = Math.abs(volumeChange).toFixed(1).replace('.', ',');
+            const absComp = Math.abs(perCompChange).toFixed(1).replace('.', ',');
+            const absDeltaT = Math.abs(deltaT).toFixed(1).replace('.', ',');
+
+            if (isContraction) {
+                explanationText.innerHTML = `
+                    <p class="mb-2"><strong>Prezado cliente,</strong></p>
+                    <p class="mb-2">
+                        A diferença de nível identificada na régua/seta do caminhão-tanque decorre exclusivamente do fenômeno físico de <strong>contração térmica do combustível</strong>.
+                    </p>
+                    <p class="mb-2">
+                        • <strong>Produto:</strong> ${fuelInfo.name}<br>
+                        • <strong>Volume Carregado:</strong> ${volume.toLocaleString('pt-BR')} Litros (${compCount} boca(s))<br>
+                        • <strong>Temperatura no Carregamento:</strong> ${tLoad} °C (quente)<br>
+                        • <strong>Temperatura na Entrega:</strong> ${tUnload} °C (frio/chuva)<br>
+                        • <strong>Queda Térmica (ΔT):</strong> -${absDeltaT} °C
+                    </p>
+                    <p class="mb-2">
+                        De acordo com as tabelas de conversão volumétrica da <strong>ANP (Resolução nº 894/2022)</strong>, a queda de <strong>${absDeltaT} °C</strong> provoca uma redução volumétrica aparente de aproximadamente <strong>${absVol} Litros no total</strong> (cerca de <strong>${absComp} Litros por boca</strong>).
+                    </p>
+                    <p>
+                        A massa (peso real) do produto permanece rigorosamente intacta e idêntica à da nota fiscal de saída. Ao aquecer o produto de volta à temperatura inicial, o líquido retorna exatamente ao nível da seta.
+                    </p>
+                `;
+            } else if (deltaT > 0) {
+                explanationText.innerHTML = `
+                    <p class="mb-2"><strong>Prezado cliente,</strong></p>
+                    <p class="mb-2">
+                        O nível do combustível encontra-se acima da seta em virtude da <strong>dilatação térmica</strong> provocada pelo aumento da temperatura ambiente durante a viagem.
+                    </p>
+                    <p class="mb-2">
+                        • <strong>Produto:</strong> ${fuelInfo.name}<br>
+                        • <strong>Volume Total:</strong> ${volume.toLocaleString('pt-BR')} Litros<br>
+                        • <strong>Elevação de Temperatura:</strong> +${absDeltaT} °C (de ${tLoad}°C para ${tUnload}°C)
+                    </p>
+                    <p>
+                        Esta elevação de temperatura gerou uma expansão volumétrica de <strong>+${absVol} Litros</strong> (+${absComp} L/boca). Trata-se do mesmo peso de produto ocupando um volume maior devido ao calor.
+                    </p>
+                `;
+            } else {
+                explanationText.innerHTML = `
+                    <p><strong>Prezado cliente,</strong></p>
+                    <p>A temperatura do combustível na entrega (${tUnload} °C) permaneceu idêntica à temperatura no momento do carregamento (${tLoad} °C). Não há alteração volumétrica por dilatação térmica.</p>
+                `;
+            }
+        }
+
+        // Copy text helper using fallback for iframe compatibility
+        function copyExplanation() {
+            const rawText = explanationText.innerText;
+            
+            // Temporary textarea method (works inside all iframe browsers)
+            const tempInput = document.createElement("textarea");
+            tempInput.value = rawText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            // Show Toast Notification
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Event Listeners
+        fuelTypeSelect.addEventListener('change', calculate);
+        volumeTotalInput.addEventListener('input', calculate);
+        tempLoadInput.addEventListener('input', calculate);
+        tempUnloadInput.addEventListener('input', calculate);
+
+        resetBtn.addEventListener('click', () => {
+            fuelTypeSelect.value = 'diesel_s10';
+            volumeTotalInput.value = 30000;
+            tempLoadInput.value = 33;
+            tempUnloadInput.value = 21.5;
+            setCompartments(6);
+            calculate();
+        });
+
+        // Initialize calculation on page load
+        window.onload = function() {
+            calculate();
+        };
+    </script>
+
+</body>
+</html>
